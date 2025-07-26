@@ -1,0 +1,50 @@
+# Node
+node_modules/
+.env
+.env.*
+build/
+dist/
+
+# Temporary folders
+mobile-temp/
+
+# React Native
+android/
+ios/
+*.keystore
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+.envrc
+
+# VSCode
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Misc
+*.swp
+*.swo
+.idea/
+
+# Coverage
+coverage/
+*.cover
+*.coverage
+
+# Others
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Azure
+*.azure*
