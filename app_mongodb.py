@@ -37,7 +37,7 @@ class LoginRequest(BaseModel):
 
 @app.get("/")
 def root():
-    return {"message": "Python FastAPI Server with MongoDB Atlas!", "status": "success"}
+    return {"message": "Python FastAPI Server with MongoDB!", "status": "success"}
 
 @app.get("/test")
 def test():
@@ -76,4 +76,4 @@ def login(data: LoginRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+    uvicorn.run(app, host="0.0.0.0", port=8001) 
