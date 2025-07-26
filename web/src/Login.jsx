@@ -21,7 +21,7 @@ function Login() {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:8000/login', {
+      const response = await fetch('https://tohar-register-dbb2b2a6hea5gqe0.israelcentral-01.azurewebsites.net/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
