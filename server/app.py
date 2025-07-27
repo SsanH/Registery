@@ -67,11 +67,22 @@ if diagnostic_info["pymongo_available"] and diagnostic_info["mongodb_uri_set"]:
         diagnostic_info["mongodb_connection"] = True
         diagnostic_info["connection_method"] = "Final approach with specific settings"
         
-        # Connect to specific database
-        db = client["registration_db"]  # Specify database name
+        # Connect to specific database - try different approaches
+        try:
+            # First try: use the database from connection string
+            db = client.get_default_database()
+            if db is None:
+                # Second try: specify database name
+                db = client["registration_db"]
+        except Exception as db_error:
+            # Third try: create database name from connection string
+            db = client["registration_db"]
+        
         users = db["users"]
         pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
         MONGODB_AVAILABLE = True
+        diagnostic_info["database_name"] = db.name
+        diagnostic_info["collection_name"] = users.name
     except Exception as e:
         diagnostic_info["error_messages"].append(f"Final approach failed: {e}")
         MONGODB_AVAILABLE = False
