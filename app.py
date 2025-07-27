@@ -44,20 +44,18 @@ mongodb_uri = os.getenv("MONGODB_URI", "NOT_SET")
 diagnostic_info["mongodb_uri_set"] = mongodb_uri != "NOT_SET"
 diagnostic_info["mongodb_uri_length"] = len(mongodb_uri) if mongodb_uri != "NOT_SET" else 0
 
-# Try MongoDB connection with SSL fixes
+# Try MongoDB connection with correct SSL configuration
 if diagnostic_info["pymongo_available"] and diagnostic_info["mongodb_uri_set"]:
     try:
         from pymongo import MongoClient
-        import ssl
         
-        # Create MongoDB client with SSL configuration
+        # Create MongoDB client with proper SSL configuration
         client = MongoClient(
             mongodb_uri,
-            ssl=True,
-            ssl_cert_reqs=ssl.CERT_NONE,  # Disable SSL certificate verification
             serverSelectionTimeoutMS=5000,  # 5 second timeout
             connectTimeoutMS=5000,
-            socketTimeoutMS=5000
+            socketTimeoutMS=5000,
+            tlsAllowInvalidCertificates=True  # Allow invalid certificates for testing
         )
         
         # Test the connection
