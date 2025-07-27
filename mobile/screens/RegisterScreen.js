@@ -23,30 +23,21 @@ export default function RegisterScreen() {
 
   const fetchRandomText = async () => {
     try {
-      const response = await fetch('http://localhost:3001/random-text');
+      // Try to connect to the Node.js server using computer's IP address
+      const response = await fetch('http://192.168.56.1:3001/random-text');
       const data = await response.json();
       return data.message;
     } catch (error) {
       console.error('Error fetching random text:', error);
-      return 'Welcome to our platform!';
-    }
-  };
-
-  const sendWelcomeEmail = async (email, username) => {
-    try {
-      await fetch('http://localhost:3001/send-welcome-email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, username }),
-      });
-    } catch (error) {
-      console.error('Error sending welcome email:', error);
+      // Fallback message if server is not accessible
+      return '🎉 Welcome to our platform! We\'re excited to have you here! ✨';
     }
   };
 
   const handleSubmit = async () => {
+    console.log('Create Account button pressed');
+    console.log('Form data:', formData);
+    
     if (!formData.email || !formData.username || !formData.password || !formData.confirmPassword) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
@@ -57,6 +48,7 @@ export default function RegisterScreen() {
       return;
     }
 
+    console.log('Starting registration process...');
     setLoading(true);
     try {
       const response = await fetch('https://tohar-register-dbb2b2a6hea5gqe0.israelcentral-01.azurewebsites.net/register', {
@@ -68,20 +60,23 @@ export default function RegisterScreen() {
       });
 
       const data = await response.json();
+      console.log('Registration response:', response.status, data);
 
       if (response.ok) {
-        // Get random text and show toast
+        console.log('Registration successful, fetching random text...');
+        // Get random text from Node.js server and show toast
         const randomText = await fetchRandomText();
+        console.log('Random text received:', randomText);
+        
         Toast.show({
           type: 'success',
           text1: 'Registration Successful!',
           text2: randomText,
+          position: 'top',
+          visibilityTime: 4000,
         });
 
-        // Send welcome email
-        await sendWelcomeEmail(formData.email, formData.username);
-        
-        // Navigate back to login
+        // Navigate back to login after showing toast
         setTimeout(() => {
           router.push('/');
         }, 2000);
@@ -89,6 +84,7 @@ export default function RegisterScreen() {
         Alert.alert('Error', data.detail || 'Registration failed');
       }
     } catch (err) {
+      console.error('Registration error:', err);
       Alert.alert('Error', 'Network error. Please try again.');
     } finally {
       setLoading(false);

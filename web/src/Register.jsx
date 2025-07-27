@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import AuthLayout from './components/AuthLayout';
 import WelcomeBox from './components/WelcomeBox';
 import RegisterForm from './components/RegisterForm';
@@ -17,17 +19,16 @@ function Register() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const sendWelcomeEmail = async (email, username) => {
+  const fetchRandomText = async () => {
     try {
-      await fetch('http://localhost:3001/send-welcome-email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, username }),
-      });
-    } catch (err) {
-      console.error('Failed to send welcome email:', err);
+      // Try to connect to the Node.js server using computer's IP address
+      const response = await fetch('http://192.168.56.1:3001/random-text');
+      const data = await response.json();
+      return data.message;
+    } catch (error) {
+      console.error('Error fetching random text:', error);
+      // Fallback message if server is not accessible
+      return '🎉 Welcome to our platform! We\'re excited to have you here! ✨';
     }
   };
 
@@ -48,9 +49,22 @@ function Register() {
       const data = await response.json();
 
       if (response.ok) {
-        alert('Registration successful!');
-        await sendWelcomeEmail(formData.email, formData.username);
-        navigate('/login');
+        // Get random text from Node.js server and show toast
+        const randomText = await fetchRandomText();
+        
+        toast.success(randomText, {
+          position: "top-center",
+          autoClose: 4000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+
+        // Navigate back to login after showing toast
+        setTimeout(() => {
+          navigate('/login');
+        }, 4000);
       } else {
         setError(data.detail || 'Registration failed');
       }
@@ -63,6 +77,7 @@ function Register() {
 
   return (
     <AuthLayout>
+      <ToastContainer />
       <WelcomeBox />
       <RegisterForm 
         formData={formData}

@@ -75,7 +75,7 @@ app.get('/random-text', async (req, res) => {
       messages: [
         {
           role: 'user',
-          content: 'Generate a short, inspiring message for a new user. Keep it under 30 words and make it motivational.'
+          content: 'Generate a short, inspiring welcome message for a new user who just registered. Make it motivational, friendly, and under 30 words. Include an emoji or two to make it more engaging.'
         }
       ]
     }, {
@@ -89,7 +89,7 @@ app.get('/random-text', async (req, res) => {
     res.json({ message: randomText });
   } catch (error) {
     console.error('Error getting random text:', error);
-    res.json({ message: 'Welcome to our platform! We\'re excited to have you here.' });
+    res.json({ message: '🎉 Welcome to our platform! We\'re excited to have you here! ✨' });
   }
 });
 
