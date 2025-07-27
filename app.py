@@ -2,8 +2,6 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
 from dotenv import load_dotenv
-from pymongo import MongoClient
-from passlib.context import CryptContext
 import os
 
 load_dotenv()
@@ -17,13 +15,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# MongoDB connection
-MONGODB_URI = os.getenv("MONGODB_URI", "mongodb://localhost:27017/registration_db")
-client = MongoClient(MONGODB_URI)
-db = client.get_default_database() if client is not None else None
-users = db["users"] if db is not None else None
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Try to import MongoDB dependencies
+try:
+    from pymongo import MongoClient
+    from passlib.context import CryptContext
+    
+    # MongoDB connection
+    MONGODB_URI = os.getenv("MONGODB_URI", "mongodb://localhost:27017/registration_db")
+    client = MongoClient(MONGODB_URI)
+    db = client.get_default_database() if client is not None else None
+    users = db["users"] if db is not None else None
+    
+    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    MONGODB_AVAILABLE = True
+except Exception as e:
+    print(f"MongoDB setup failed: {e}")
+    MONGODB_AVAILABLE = False
+    users = None
+    pwd_context = None
 
 class RegisterRequest(BaseModel):
     email: EmailStr
@@ -37,7 +46,11 @@ class LoginRequest(BaseModel):
 
 @app.get("/")
 def root():
-    return {"message": "Python FastAPI Server with MongoDB Atlas!", "status": "success"}
+    return {
+        "message": "Python FastAPI Server with MongoDB Atlas!", 
+        "status": "success",
+        "mongodb_available": MONGODB_AVAILABLE
+    }
 
 @app.get("/test")
 def test():
@@ -45,6 +58,9 @@ def test():
 
 @app.post("/register")
 def register(data: RegisterRequest):
+    if not MONGODB_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Database not available")
+    
     if data.password != data.confirmPassword:
         raise HTTPException(status_code=400, detail="Passwords do not match")
     
@@ -65,6 +81,9 @@ def register(data: RegisterRequest):
 
 @app.post("/login")
 def login(data: LoginRequest):
+    if not MONGODB_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Database not available")
+    
     user = users.find_one({"email": data.email})
     if not user:
         raise HTTPException(status_code=400, detail="Invalid email or password")
