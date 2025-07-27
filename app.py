@@ -44,22 +44,17 @@ mongodb_uri = os.getenv("MONGODB_URI", "NOT_SET")
 diagnostic_info["mongodb_uri_set"] = mongodb_uri != "NOT_SET"
 diagnostic_info["mongodb_uri_length"] = len(mongodb_uri) if mongodb_uri != "NOT_SET" else 0
 
-# Try MongoDB connection with proper SSL handling
+# Try MongoDB connection with minimal SSL configuration
 if diagnostic_info["pymongo_available"] and diagnostic_info["mongodb_uri_set"]:
     try:
         from pymongo import MongoClient
-        import ssl
         
-        # Create MongoDB client with proper SSL configuration for Azure
+        # Create MongoDB client with minimal SSL configuration
         client = MongoClient(
             mongodb_uri,
-            serverSelectionTimeoutMS=15000,  # 15 second timeout
-            connectTimeoutMS=15000,
-            socketTimeoutMS=15000,
-            ssl=True,
-            ssl_cert_reqs=ssl.CERT_NONE,  # Don't verify SSL certificates
-            retryWrites=False,
-            w='majority'
+            serverSelectionTimeoutMS=20000,  # 20 second timeout
+            connectTimeoutMS=20000,
+            socketTimeoutMS=20000
         )
         
         # Test the connection
