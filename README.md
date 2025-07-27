@@ -5,7 +5,7 @@ A comprehensive full-stack application with web and mobile interfaces for user r
 ## 🏗️ Technology Stack
 
 ### Backend
-- **Azure Cosmos DB** - Cloud database for user data storage
+- **Azure Cosmos MongoDB** - Cloud database for user data storage
 - **Python/FastAPI** - Azure-hosted backend for registration/login endpoints
 - **Node.js/Express** - Secondary server for ChatGPT API integration
 - **OpenAI ChatGPT API** - Dynamic message generation for user engagement
@@ -101,7 +101,7 @@ A comprehensive full-stack application with web and mobile interfaces for user r
 - Optimized for mobile devices
 
 ### Backend Services
-- Azure Cosmos DB for data persistence
+- Azure Cosmos MongoDB for data persistence
 - FastAPI backend for user management
 - Node.js server for ChatGPT integration
 - Secure API key management
@@ -126,4 +126,4 @@ A comprehensive full-stack application with web and mobile interfaces for user r
 
 ---
 
-**Built with ❤️ using React, React Native, Python, Node.js, and Azure** 
+**Built with ❤️ using React, React Native, Python, Node.js, and Azure's MongoDB** 
