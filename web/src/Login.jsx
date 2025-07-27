@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AuthLayout from './components/AuthLayout';
-import Logo from './components/Logo';
 import WelcomeBox from './components/WelcomeBox';
 import LoginForm from './components/LoginForm';
 
@@ -46,7 +45,6 @@ function Login() {
 
   return (
     <AuthLayout>
-      <Logo />
       <WelcomeBox />
       <LoginForm 
         formData={formData}

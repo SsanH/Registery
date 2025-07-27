@@ -10,8 +10,8 @@ function SocialButton({ type, onClick }) {
   };
 
   const getText = () => {
-    if (type === 'google') return 'Continue with Google';
-    if (type === 'facebook') return 'Continue with Facebook';
+    if (type === 'google') return 'Google';
+    if (type === 'facebook') return 'Facebook';
     return '';
   };
 

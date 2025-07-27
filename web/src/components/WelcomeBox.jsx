@@ -1,18 +1,21 @@
 import React from 'react';
 import welcome from '../assets/welcome.png';
+import Logo from './Logo';
 
 function WelcomeBox() {
   return (
     <div style={{
-      flex: 1,
+      flex: 1.5,
       backgroundColor: '#3949ab',
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'center',
       alignItems: 'center',
       padding: '40px',
-      color: 'white'
+      color: 'white',
+      position: 'relative'
     }}>
+      <Logo />
       <div style={{
         width: '300px',
         height: '300px',
@@ -27,13 +30,14 @@ function WelcomeBox() {
           src={welcome} 
           alt="Welcome" 
           style={{
-            width: '200px',
-            height: '200px'
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover'
           }}
         />
       </div>
-      <h1 style={{ margin: '0 0 10px 0', fontSize: '2.5rem' }}>
-        Welcome Back!
+      <h1 style={{ margin: '0 0 10px 0', fontSize: '2rem' }}>
+        Welcome aboard my friend
       </h1>
       <p style={{ 
         margin: '0', 
@@ -41,7 +45,7 @@ function WelcomeBox() {
         textAlign: 'center',
         opacity: 0.9
       }}>
-        We're so excited to see you again!
+        just a couple of clicks and we start
       </p>
     </div>
   );

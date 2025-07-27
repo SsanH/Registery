@@ -5,9 +5,23 @@ function AuthLayout({ children }) {
     <div style={{
       display: 'flex',
       minHeight: '100vh',
-      backgroundColor: '#f5f5f5'
+      backgroundColor: 'rgb(87, 105, 212)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: '20px'
     }}>
-      {children}
+      <div style={{
+        display: 'flex',
+        width: '90%',
+        maxWidth: '1000px',
+        minHeight: '600px',
+        backgroundColor: 'white',
+        borderRadius: '20px',
+        overflow: 'hidden',
+        boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)'
+      }}>
+        {children}
+      </div>
     </div>
   );
 }

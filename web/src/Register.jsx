@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AuthLayout from './components/AuthLayout';
-import Logo from './components/Logo';
 import WelcomeBox from './components/WelcomeBox';
 import RegisterForm from './components/RegisterForm';
 
@@ -64,7 +63,6 @@ function Register() {
 
   return (
     <AuthLayout>
-      <Logo />
       <WelcomeBox />
       <RegisterForm 
         formData={formData}

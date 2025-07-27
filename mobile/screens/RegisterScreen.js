@@ -1,7 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Alert, ScrollView, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import Toast from 'react-native-toast-message';
+
+// Import components
+import Logo from '../components/Logo';
+import InputField from '../components/InputField';
+import Button from '../components/Button';
+import Divider from '../components/Divider';
+import SocialButton from '../components/SocialButton';
 
 export default function RegisterScreen() {
   const [formData, setFormData] = useState({
@@ -90,104 +97,73 @@ export default function RegisterScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.logoContainer}>
-        <Text style={styles.logo}>S</Text>
-      </View>
+      <Logo />
       
       <View style={styles.formContainer}>
-        <Text style={styles.title}>Create Account</Text>
+        <Text style={styles.registerTitle}>Sign up</Text>
         
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Email</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter your email"
-            value={formData.email}
-            onChangeText={(text) => setFormData({...formData, email: text})}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-        </View>
+        <InputField
+          placeholder="Email"
+          value={formData.email}
+          onChangeText={(text) => setFormData({...formData, email: text})}
+          keyboardType="email-address"
+          icon={require('../assets/email.png')}
+        />
         
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Username</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter your username"
-            value={formData.username}
-            onChangeText={(text) => setFormData({...formData, username: text})}
-            autoCapitalize="none"
-          />
-        </View>
+        <InputField
+          placeholder="Username"
+          value={formData.username}
+          onChangeText={(text) => setFormData({...formData, username: text})}
+          icon={require('../assets/user.png')}
+        />
         
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Password</Text>
-          <View style={styles.passwordContainer}>
-            <TextInput
-              style={styles.passwordInput}
-              placeholder="Enter your password"
-              value={formData.password}
-              onChangeText={(text) => setFormData({...formData, password: text})}
-              secureTextEntry={!showPassword}
-              autoCapitalize="none"
-            />
-            <TouchableOpacity 
-              style={styles.eyeButton}
-              onPress={() => setShowPassword(!showPassword)}
-            >
-              <Text style={styles.eyeText}>{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        <InputField
+          placeholder="Password"
+          value={formData.password}
+          onChangeText={(text) => setFormData({...formData, password: text})}
+          secureTextEntry={!showPassword}
+          showEyeIcon={true}
+          onEyePress={() => setShowPassword(!showPassword)}
+          icon={require('../assets/lock.png')}
+        />
         
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Confirm Password</Text>
-          <View style={styles.passwordContainer}>
-            <TextInput
-              style={styles.passwordInput}
-              placeholder="Confirm your password"
-              value={formData.confirmPassword}
-              onChangeText={(text) => setFormData({...formData, confirmPassword: text})}
-              secureTextEntry={!showConfirmPassword}
-              autoCapitalize="none"
-            />
-            <TouchableOpacity 
-              style={styles.eyeButton}
-              onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-            >
-              <Text style={styles.eyeText}>{showConfirmPassword ? '👁️' : '👁️‍🗨️'}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        <InputField
+          placeholder="Confirm Password"
+          value={formData.confirmPassword}
+          onChangeText={(text) => setFormData({...formData, confirmPassword: text})}
+          secureTextEntry={!showConfirmPassword}
+          showEyeIcon={true}
+          onEyePress={() => setShowConfirmPassword(!showConfirmPassword)}
+          icon={require('../assets/lock.png')}
+        />
         
-        <TouchableOpacity 
-          style={[styles.button, loading && styles.buttonDisabled]}
+        <Button
+          title="Create Account"
           onPress={handleSubmit}
           disabled={loading}
-        >
-          <Text style={styles.buttonText}>
-            {loading ? 'Creating Account...' : 'Create Account'}
-          </Text>
-        </TouchableOpacity>
+          loading={loading}
+        />
         
-        <View style={styles.divider}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>Or</Text>
-          <View style={styles.dividerLine} />
+        <Divider />
+        
+        <View style={styles.socialButtonsContainer}>
+          <SocialButton 
+            title="Google" 
+            onPress={() => Alert.alert('Google', 'Google registration clicked')}
+            style={styles.socialButton}
+          />
+          
+          <SocialButton 
+            title="Facebook" 
+            onPress={() => Alert.alert('Facebook', 'Facebook registration clicked')}
+            style={styles.socialButton}
+          />
         </View>
         
-        <TouchableOpacity style={styles.socialButton}>
-          <Text style={styles.socialButtonText}>Continue with Google</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.socialButton}>
-          <Text style={styles.socialButtonText}>Continue with Facebook</Text>
-        </TouchableOpacity>
-        
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Already have an account? </Text>
-          <TouchableOpacity onPress={() => router.push('/')}>
-            <Text style={styles.linkText}>Sign In</Text>
+        <View style={styles.loginSection}>
+          <Text style={styles.loginText}>Already have an account?</Text>
+          <TouchableOpacity style={styles.loginButton} onPress={() => router.push('/')}>
+            <Text style={styles.loginButtonText}>Sign In</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -198,128 +174,51 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
     padding: 20,
-  },
-  logoContainer: {
-    alignItems: 'center',
-    marginTop: 60,
-    marginBottom: 40,
-  },
-  logo: {
-    fontSize: 48,
-    fontWeight: 'bold',
-    color: '#3949ab',
-    backgroundColor: '#f0f0f0',
-    width: 80,
-    height: 80,
-    textAlign: 'center',
-    lineHeight: 80,
-    borderRadius: 40,
   },
   formContainer: {
     flex: 1,
     paddingHorizontal: 20,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333',
+  registerTitle: {
+    fontSize: 18,
+    color: '#666',
     textAlign: 'center',
     marginBottom: 30,
+    fontWeight: 'normal',
   },
-  inputContainer: {
-    marginBottom: 20,
-  },
-  inputLabel: {
-    fontSize: 16,
-    color: '#333',
-    marginBottom: 8,
-    fontWeight: '500',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
-    padding: 15,
-    fontSize: 16,
-    backgroundColor: 'white',
-  },
-  passwordContainer: {
+  socialButtonsContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
-    backgroundColor: 'white',
-  },
-  passwordInput: {
-    flex: 1,
-    padding: 15,
-    fontSize: 16,
-  },
-  eyeButton: {
-    padding: 15,
-  },
-  eyeText: {
-    fontSize: 20,
-  },
-  button: {
-    backgroundColor: '#3949ab',
-    padding: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 20,
-  },
-  buttonDisabled: {
-    opacity: 0.7,
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#ddd',
-  },
-  dividerText: {
-    marginHorizontal: 15,
-    color: '#666',
-    fontSize: 14,
+    justifyContent: 'space-between',
+    marginBottom: 30,
   },
   socialButton: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
-    padding: 15,
+    flex: 1,
+    marginHorizontal: 5,
+  },
+  loginSection: {
     alignItems: 'center',
-    marginBottom: 10,
-    backgroundColor: 'white',
+    marginTop: 20,
   },
-  socialButtonText: {
-    fontSize: 14,
-    color: '#333',
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 30,
-  },
-  footerText: {
+  loginText: {
     color: '#666',
     fontSize: 14,
+    marginBottom: 10,
   },
-  linkText: {
-    color: '#3949ab',
-    fontSize: 14,
+  loginButton: {
+    borderWidth: 2,
+    borderColor: '#007AFF',
+    borderRadius: 10,
+    paddingHorizontal: 30,
+    paddingVertical: 15,
+    backgroundColor: 'white',
+    width: '100%',
+    alignItems: 'center',
+  },
+  loginButtonText: {
+    color: '#007AFF',
+    fontSize: 16,
     fontWeight: '600',
   },
 }); 
