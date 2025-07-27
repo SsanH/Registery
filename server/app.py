@@ -10,9 +10,16 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:3001", 
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001",
+        "https://tohar-register-dbb2b2a6hea5gqe0.israelcentral-01.azurewebsites.net",
+        "*"
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -129,6 +136,8 @@ def test():
 
 @app.post("/register")
 def register(data: RegisterRequest):
+    print(f"Registration attempt for email: {data.email}, username: {data.username}")
+    
     if data.password != data.confirmPassword:
         raise HTTPException(status_code=400, detail="Passwords do not match")
     
@@ -147,6 +156,7 @@ def register(data: RegisterRequest):
             "password": hashed_password
         }
         users.insert_one(user)
+        print(f"User registered successfully in MongoDB: {data.email}")
         return {"message": "Registration successful! (MongoDB)"}
     else:
         # Use in-memory storage
@@ -162,6 +172,7 @@ def register(data: RegisterRequest):
             "username": data.username,
             "password": hashed_password
         }
+        print(f"User registered successfully in memory: {data.email}")
         return {"message": "Registration successful! (In-Memory)"}
 
 @app.post("/login")
