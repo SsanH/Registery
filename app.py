@@ -39,23 +39,31 @@ try:
 except ImportError as e:
     diagnostic_info["error_messages"].append(f"passlib import failed: {e}")
 
-# Check MongoDB URI
+# Check MongoDB URI and modify it for Azure compatibility
 mongodb_uri = os.getenv("MONGODB_URI", "NOT_SET")
 diagnostic_info["mongodb_uri_set"] = mongodb_uri != "NOT_SET"
 diagnostic_info["mongodb_uri_length"] = len(mongodb_uri) if mongodb_uri != "NOT_SET" else 0
 
-# Try MongoDB connection with correct SSL configuration
+# Try MongoDB connection with Azure-compatible settings
 if diagnostic_info["pymongo_available"] and diagnostic_info["mongodb_uri_set"]:
     try:
         from pymongo import MongoClient
         
-        # Create MongoDB client with proper SSL configuration
+        # Modify the connection string to work with Azure
+        # Add retryWrites=false and ssl=false to the URI
+        if "?" in mongodb_uri:
+            modified_uri = mongodb_uri + "&retryWrites=false&ssl=false"
+        else:
+            modified_uri = mongodb_uri + "?retryWrites=false&ssl=false"
+        
+        diagnostic_info["modified_uri"] = modified_uri[:50] + "..."  # Show first 50 chars
+        
+        # Create MongoDB client with Azure-compatible settings
         client = MongoClient(
-            mongodb_uri,
-            serverSelectionTimeoutMS=5000,  # 5 second timeout
-            connectTimeoutMS=5000,
-            socketTimeoutMS=5000,
-            tlsAllowInvalidCertificates=True  # Allow invalid certificates for testing
+            modified_uri,
+            serverSelectionTimeoutMS=10000,  # 10 second timeout
+            connectTimeoutMS=10000,
+            socketTimeoutMS=10000
         )
         
         # Test the connection
