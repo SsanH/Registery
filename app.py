@@ -39,87 +39,42 @@ try:
 except ImportError as e:
     diagnostic_info["error_messages"].append(f"passlib import failed: {e}")
 
-# Check MongoDB URI and try different connection approaches
+# Check MongoDB URI and try final approach
 mongodb_uri = os.getenv("MONGODB_URI", "NOT_SET")
 diagnostic_info["mongodb_uri_set"] = mongodb_uri != "NOT_SET"
 diagnostic_info["mongodb_uri_length"] = len(mongodb_uri) if mongodb_uri != "NOT_SET" else 0
 
-# Try MongoDB connection with different approaches
+# Try MongoDB connection with final approach
 if diagnostic_info["pymongo_available"] and diagnostic_info["mongodb_uri_set"]:
     try:
         from pymongo import MongoClient
         
-        # Try approach 1: Direct connection with minimal settings
+        # Final approach: Try with specific TLS settings
         client = MongoClient(
             mongodb_uri,
-            serverSelectionTimeoutMS=10000,
-            connectTimeoutMS=10000,
-            socketTimeoutMS=10000,
+            serverSelectionTimeoutMS=15000,
+            connectTimeoutMS=15000,
+            socketTimeoutMS=15000,
             maxPoolSize=1,
-            minPoolSize=0
+            minPoolSize=0,
+            retryWrites=False,
+            w='majority',
+            readPreference='primary'
         )
         
         # Test the connection
         client.admin.command('ping')
         diagnostic_info["mongodb_connection"] = True
-        diagnostic_info["connection_method"] = "Direct connection"
+        diagnostic_info["connection_method"] = "Final approach with specific settings"
         db = client.get_default_database()
         users = db["users"]
         pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
         MONGODB_AVAILABLE = True
     except Exception as e:
-        diagnostic_info["error_messages"].append(f"Approach 1 failed: {e}")
-        
-        # Try approach 2: With retryWrites=false
-        try:
-            if "?" in mongodb_uri:
-                modified_uri = mongodb_uri + "&retryWrites=false"
-            else:
-                modified_uri = mongodb_uri + "?retryWrites=false"
-            
-            client = MongoClient(
-                modified_uri,
-                serverSelectionTimeoutMS=10000,
-                connectTimeoutMS=10000,
-                socketTimeoutMS=10000
-            )
-            
-            client.admin.command('ping')
-            diagnostic_info["mongodb_connection"] = True
-            diagnostic_info["connection_method"] = "With retryWrites=false"
-            db = client.get_default_database()
-            users = db["users"]
-            pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-            MONGODB_AVAILABLE = True
-        except Exception as e2:
-            diagnostic_info["error_messages"].append(f"Approach 2 failed: {e2}")
-            
-            # Try approach 3: With directConnection=true
-            try:
-                if "?" in mongodb_uri:
-                    modified_uri = mongodb_uri + "&directConnection=true"
-                else:
-                    modified_uri = mongodb_uri + "?directConnection=true"
-                
-                client = MongoClient(
-                    modified_uri,
-                    serverSelectionTimeoutMS=10000,
-                    connectTimeoutMS=10000,
-                    socketTimeoutMS=10000
-                )
-                
-                client.admin.command('ping')
-                diagnostic_info["mongodb_connection"] = True
-                diagnostic_info["connection_method"] = "With directConnection=true"
-                db = client.get_default_database()
-                users = db["users"]
-                pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-                MONGODB_AVAILABLE = True
-            except Exception as e3:
-                diagnostic_info["error_messages"].append(f"Approach 3 failed: {e3}")
-                MONGODB_AVAILABLE = False
-                users = None
-                pwd_context = None
+        diagnostic_info["error_messages"].append(f"Final approach failed: {e}")
+        MONGODB_AVAILABLE = False
+        users = None
+        pwd_context = None
 else:
     MONGODB_AVAILABLE = False
     users = None
