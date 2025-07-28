@@ -2,114 +2,66 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
 from dotenv import load_dotenv
+from pymongo import MongoClient
+from passlib.context import CryptContext
 import os
-import hashlib
+import logging
 
-load_dotenv() # load environment variables from .env file
-app = FastAPI() # create FastAPI app
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+load_dotenv()
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[ # who can access the server
-        "http://localhost:3000", # web app
-        "http://localhost:3001", # nodejs
-        "http://127.0.0.1:3000", # web app
-        "http://127.0.0.1:3001", # nodejs
-        "https://tohar-register-dbb2b2a6hea5gqe0.israelcentral-01.azurewebsites.net", # azure   
-        "*" # allow all origins
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:3001", 
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001",
+        "https://tohar-register-dbb2b2a6hea5gqe0.israelcentral-01.azurewebsites.net",
+        "*"
     ],
-    allow_credentials=True, # allow credentials
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"], # allow all methods
-    allow_headers=["*"], # allow all headers
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
 )
 
-# Diagnostic information
-diagnostic_info = {
-    "pymongo_available": False, # check if pymongo is available
-    "passlib_available": False, # check if passlib is available
-    "mongodb_uri_set": False, # check if mongodb uri is set
-    "mongodb_connection": False, # check if mongodb connection is established
-    "error_messages": [] # error messages
-}
-
-# Try to import MongoDB dependencies
-try:
-    import pymongo
-    diagnostic_info["pymongo_available"] = True
-    diagnostic_info["pymongo_version"] = pymongo.__version__
-except ImportError as e:
-    diagnostic_info["error_messages"].append(f"pymongo import failed: {e}")
+# MongoDB connection
+mongodb_uri = os.getenv("MONGODB_URI")
+if not mongodb_uri:
+    logger.error("MONGODB_URI environment variable not set")
+    raise ValueError("MONGODB_URI environment variable is required")
 
 try:
-    from passlib.context import CryptContext
-    diagnostic_info["passlib_available"] = True
-except ImportError as e:
-    diagnostic_info["error_messages"].append(f"passlib import failed: {e}")
-
-# Check MongoDB URI
-mongodb_uri = os.getenv("MONGODB_URI", "NOT_SET")
-diagnostic_info["mongodb_uri_set"] = mongodb_uri != "NOT_SET" 
-diagnostic_info["mongodb_uri_length"] = len(mongodb_uri) if mongodb_uri != "NOT_SET" else 0
-
-# Try MongoDB connection with database name fix
-if diagnostic_info["pymongo_available"] and diagnostic_info["mongodb_uri_set"]:
-    try:
-        from pymongo import MongoClient
-        
-        # Create MongoDB client with database name
-        client = MongoClient(
-            mongodb_uri,
-            serverSelectionTimeoutMS=15000,
-            connectTimeoutMS=15000,
-            socketTimeoutMS=15000,
-            maxPoolSize=1,
-            minPoolSize=0,
-            retryWrites=False,
-            w='majority',
-            readPreference='primary'
-        )
-        
-        # Test the connection
-        client.admin.command('ping')
-        diagnostic_info["mongodb_connection"] = True
-        diagnostic_info["connection_method"] = "Final approach with specific settings"
-        
-        # Connect to specific database - try different approaches
-        try:
-            # First try: use the database from connection string
-            db = client.get_default_database()
-            if db is None:
-                # Second try: specify database name
-                db = client["registration_db"]
-        except Exception as db_error:
-            # Third try: create database name from connection string
-            db = client["registration_db"]
-        
-        users = db["users"]
-        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-        MONGODB_AVAILABLE = True
-        diagnostic_info["database_name"] = db.name
-        diagnostic_info["collection_name"] = users.name
-    except Exception as e:
-        diagnostic_info["error_messages"].append(f"Final approach failed: {e}")
-        MONGODB_AVAILABLE = False
-        users = None
-        pwd_context = None
-else:
-    MONGODB_AVAILABLE = False
-    users = None
-    pwd_context = None
-
-# Fallback to in-memory storage
-users_db = {}
-
-def hash_password(password: str) -> str:
-    """Simple password hashing"""
-    return hashlib.sha256(password.encode()).hexdigest()
-
-def verify_password(password: str, hashed: str) -> bool:
-    """Verify password against hash"""
-    return hash_password(password) == hashed
+    client = MongoClient(
+        mongodb_uri,
+        serverSelectionTimeoutMS=15000,
+        connectTimeoutMS=15000,
+        socketTimeoutMS=15000,
+        maxPoolSize=1,
+        minPoolSize=0,
+        retryWrites=False,
+        w='majority',
+        readPreference='primary'
+    )
+    
+    # Test connection
+    client.admin.command('ping')
+    logger.info("Successfully connected to MongoDB")
+    
+    # Connect to database and collection
+    db = client["registration_db"]
+    users = db["users"]
+    
+    # Password hashing context
+    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    
+except Exception as e:
+    logger.error(f"Failed to connect to MongoDB: {e}")
+    raise
 
 class RegisterRequest(BaseModel):
     email: EmailStr
@@ -124,80 +76,51 @@ class LoginRequest(BaseModel):
 @app.get("/")
 def root():
     return {
-        "message": "Python FastAPI Server - MongoDB Diagnostic",
-        "status": "success",
-        "mongodb_available": MONGODB_AVAILABLE,
-        "diagnostic_info": diagnostic_info
+        "message": "Registration API Server",
+        "status": "success"
     }
-
-@app.get("/test")
-def test():
-    return {"message": "Test endpoint working!"}
 
 @app.post("/register")
 def register(data: RegisterRequest):
-    print(f"Registration attempt for email: {data.email}, username: {data.username}")
+    logger.info(f"Registration attempt for email: {data.email}")
     
     if data.password != data.confirmPassword:
         raise HTTPException(status_code=400, detail="Passwords do not match")
     
-    if MONGODB_AVAILABLE:
-        # Use MongoDB
-        if users.find_one({"email": data.email}):
-            raise HTTPException(status_code=400, detail="Email already registered")
-        
-        if users.find_one({"username": data.username}):
-            raise HTTPException(status_code=400, detail="Username already taken")
-        
-        hashed_password = pwd_context.hash(data.password)
-        user = {
-            "email": data.email,
-            "username": data.username,
-            "password": hashed_password
-        }
-        users.insert_one(user)
-        print(f"User registered successfully in MongoDB: {data.email}")
-        return {"message": "Registration successful! (MongoDB)"}
-    else:
-        # Use in-memory storage
-        if data.email in users_db:
-            raise HTTPException(status_code=400, detail="Email already registered")
-        
-        if any(user["username"] == data.username for user in users_db.values()):
-            raise HTTPException(status_code=400, detail="Username already taken")
-        
-        hashed_password = hash_password(data.password)
-        users_db[data.email] = {
-            "email": data.email,
-            "username": data.username,
-            "password": hashed_password
-        }
-        print(f"User registered successfully in memory: {data.email}")
-        return {"message": "Registration successful! (In-Memory)"}
+    # Check if email already exists
+    if users.find_one({"email": data.email}):
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Check if username already exists
+    if users.find_one({"username": data.username}):
+        raise HTTPException(status_code=400, detail="Username already taken")
+    
+    # Hash password and create user
+    hashed_password = pwd_context.hash(data.password)
+    user = {
+        "email": data.email,
+        "username": data.username,
+        "password": hashed_password
+    }
+    
+    users.insert_one(user)
+    logger.info(f"User registered successfully: {data.email}")
+    return {"message": "Registration successful!"}
 
 @app.post("/login")
 def login(data: LoginRequest):
-    if MONGODB_AVAILABLE:
-        # Use MongoDB
-        user = users.find_one({"email": data.email})
-        if not user:
-            raise HTTPException(status_code=400, detail="Invalid email or password")
-        
-        if not pwd_context.verify(data.password, user["password"]):
-            raise HTTPException(status_code=400, detail="Invalid email or password")
-        
-        return {"message": "Login successful! (MongoDB)", "username": user["username"]}
-    else:
-        # Use in-memory storage
-        if data.email not in users_db:
-            raise HTTPException(status_code=400, detail="Invalid email or password")
-        
-        user = users_db[data.email]
-        if not verify_password(data.password, user["password"]):
-            raise HTTPException(status_code=400, detail="Invalid email or password")
-        
-        return {"message": "Login successful! (In-Memory)", "username": user["username"]}
+    # Find user by email
+    user = users.find_one({"email": data.email})
+    if not user:
+        raise HTTPException(status_code=400, detail="Invalid email or password")
+    
+    # Verify password
+    if not pwd_context.verify(data.password, user["password"]):
+        raise HTTPException(status_code=400, detail="Invalid email or password")
+    
+    logger.info(f"User logged in successfully: {data.email}")
+    return {"message": "Login successful!", "username": user["username"]}
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)  # Force Cosmos DB deployment 
+    uvicorn.run(app, host="0.0.0.0", port=8000) 
