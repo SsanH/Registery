@@ -5,31 +5,31 @@ from dotenv import load_dotenv
 import os
 import hashlib
 
-load_dotenv()
-app = FastAPI()
+load_dotenv() # load environment variables from .env file
+app = FastAPI() # create FastAPI app
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://localhost:3001", 
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:3001",
-        "https://tohar-register-dbb2b2a6hea5gqe0.israelcentral-01.azurewebsites.net",
-        "*"
+    allow_origins=[ # who can access the server
+        "http://localhost:3000", # web app
+        "http://localhost:3001", # nodejs
+        "http://127.0.0.1:3000", # web app
+        "http://127.0.0.1:3001", # nodejs
+        "https://tohar-register-dbb2b2a6hea5gqe0.israelcentral-01.azurewebsites.net", # azure   
+        "*" # allow all origins
     ],
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=["*"],
+    allow_credentials=True, # allow credentials
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"], # allow all methods
+    allow_headers=["*"], # allow all headers
 )
 
 # Diagnostic information
 diagnostic_info = {
-    "pymongo_available": False,
-    "passlib_available": False,
-    "mongodb_uri_set": False,
-    "mongodb_connection": False,
-    "error_messages": []
+    "pymongo_available": False, # check if pymongo is available
+    "passlib_available": False, # check if passlib is available
+    "mongodb_uri_set": False, # check if mongodb uri is set
+    "mongodb_connection": False, # check if mongodb connection is established
+    "error_messages": [] # error messages
 }
 
 # Try to import MongoDB dependencies
@@ -48,7 +48,7 @@ except ImportError as e:
 
 # Check MongoDB URI
 mongodb_uri = os.getenv("MONGODB_URI", "NOT_SET")
-diagnostic_info["mongodb_uri_set"] = mongodb_uri != "NOT_SET"
+diagnostic_info["mongodb_uri_set"] = mongodb_uri != "NOT_SET" 
 diagnostic_info["mongodb_uri_length"] = len(mongodb_uri) if mongodb_uri != "NOT_SET" else 0
 
 # Try MongoDB connection with database name fix
